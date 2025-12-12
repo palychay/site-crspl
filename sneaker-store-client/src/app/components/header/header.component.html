@@ -1,0 +1,50 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+  <div class="container">
+    <a class="navbar-brand logo d-flex align-items-center" routerLink="/">
+      <i class="fa fa-shoe-prints text-primary me-2"></i>
+      <span>SneakerStore</span>
+    </a>
+
+    @if (showMenu) {
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        @if (authService.isAuthenticated()) {
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/sneakers" routerLinkActive="active">
+                <i class="fa fa-shopping-bag me-1"></i> Кроссовки
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/orders" routerLinkActive="active">
+                <i class="fa fa-list-alt me-1"></i> Заказы
+              </a>
+            </li>
+          </ul>
+        }
+      </div>
+    }
+
+    <div class="d-flex align-items-center">
+      @if (authService.currentUser$ | async; as user) {
+        <div class="me-3">
+          <span class="text-muted">Вы вошли как: <strong>{{ user.username }}</strong></span>
+          @if (user.role === 'admin') {
+            <span class="badge bg-danger ms-2">Admin</span>
+          }
+        </div>
+        
+        <button class="btn btn-outline-danger btn-sm" (click)="logout()">
+          <i class="fa fa-sign-out me-1"></i> Выйти
+        </button>
+      } @else if (showLoginButton) {
+        <button class="btn btn-outline-primary btn-sm" routerLink="/login">
+          <i class="fa fa-sign-in me-1"></i> Войти
+        </button>
+      }
+    </div>
+  </div>
+</nav>

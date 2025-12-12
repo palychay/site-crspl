@@ -1,0 +1,146 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card">
+        <div class="card-header bg-white border-0 pt-4">
+          <h4 class="text-center mb-0">
+            <i class="fa fa-shoe-prints text-primary me-2"></i>
+            @if (isLoginMode) {
+              Вход в SneakerStore
+            } @else {
+              Регистрация
+            }
+          </h4>
+        </div>
+        
+        <div class="card-body">
+          @if (isLoginMode) {
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+              <div class="mb-3">
+                <label class="form-label">Имя пользователя</label>
+                <input type="text" 
+                       class="form-control" 
+                       formControlName="username"
+                       [class.is-invalid]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
+                @if (loginForm.get('username')?.hasError('required') && loginForm.get('username')?.touched) {
+                  <div class="invalid-feedback">
+                    Введите имя пользователя
+                  </div>
+                }
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Пароль</label>
+                <input type="password" 
+                       class="form-control" 
+                       formControlName="password"
+                       [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
+                  <div class="invalid-feedback">
+                    Введите пароль
+                  </div>
+                }
+                @if (loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.touched) {
+                  <div class="invalid-feedback">
+                    Минимум 3 символа
+                  </div>
+                }
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="submit" 
+                        class="btn btn-primary"
+                        [disabled]="loginForm.invalid || isLoading">
+                  @if (isLoading) {
+                    <i class="fa fa-spinner fa-spin me-1"></i> Загрузка...
+                  } @else {
+                    Войти
+                  }
+                </button>
+              </div>
+            </form>
+          } @else {
+            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+              <div class="mb-3">
+                <label class="form-label">Имя пользователя</label>
+                <input type="text" 
+                       class="form-control" 
+                       formControlName="username"
+                       [class.is-invalid]="registerForm.get('username')?.invalid && registerForm.get('username')?.touched">
+                @if (registerForm.get('username')?.hasError('required') && registerForm.get('username')?.touched) {
+                  <div class="invalid-feedback">
+                    Введите имя пользователя
+                  </div>
+                }
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" 
+                       class="form-control" 
+                       formControlName="email"
+                       [class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+                @if (registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched) {
+                  <div class="invalid-feedback">
+                    Введите email
+                  </div>
+                }
+                @if (registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched) {
+                  <div class="invalid-feedback">
+                    Неверный формат email
+                  </div>
+                }
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Пароль</label>
+                <input type="password" 
+                       class="form-control" 
+                       formControlName="password"
+                       [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+                @if (registerForm.get('password')?.hasError('required') && registerForm.get('password')?.touched) {
+                  <div class="invalid-feedback">
+                    Введите пароль
+                  </div>
+                }
+                @if (registerForm.get('password')?.hasError('minlength') && registerForm.get('password')?.touched) {
+                  <div class="invalid-feedback">
+                    Минимум 6 символов
+                  </div>
+                }
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="submit" 
+                        class="btn btn-primary"
+                        [disabled]="registerForm.invalid || isLoading">
+                  @if (isLoading) {
+                    <i class="fa fa-spinner fa-spin me-1"></i> Загрузка...
+                  } @else {
+                    Зарегистрироваться
+                  }
+                </button>
+              </div>
+            </form>
+          }
+
+          @if (errorMessage) {
+            <div class="alert alert-danger mt-3">
+              {{ errorMessage }}
+            </div>
+          }
+
+          <div class="text-center mt-3">
+            <a href="javascript:void(0)" (click)="toggleMode()" class="text-decoration-none">
+              @if (isLoginMode) {
+                Нет аккаунта? Зарегистрироваться
+              } @else {
+                Уже есть аккаунт? Войти
+              }
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

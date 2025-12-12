@@ -1,0 +1,171 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h4 class="mb-0">
+            <i class="fa fa-shoe-prints me-2"></i>
+            @if (isEditMode) {
+              Редактирование кроссовок
+            } @else {
+              Добавление новых кроссовок
+            }
+          </h4>
+        </div>
+        
+        <div class="card-body">
+          <form [formGroup]="sneakerForm" (ngSubmit)="onSubmit()">
+            <!-- Основная информация -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Название*</label>
+                <input type="text" 
+                       class="form-control" 
+                       formControlName="name"
+                       [class.is-invalid]="sneakerForm.get('name')?.invalid && sneakerForm.get('name')?.touched">
+                @if (sneakerForm.get('name')?.invalid && sneakerForm.get('name')?.touched) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('name') }}
+                  </div>
+                }
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label">Бренд*</label>
+                <input type="text" 
+                       class="form-control" 
+                       formControlName="brand"
+                       [class.is-invalid]="sneakerForm.get('brand')?.invalid && sneakerForm.get('brand')?.touched">
+                @if (sneakerForm.get('brand')?.invalid && sneakerForm.get('brand')?.touched) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('brand') }}
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Модель*</label>
+                <input type="text" 
+                       class="form-control" 
+                       formControlName="model"
+                       [class.is-invalid]="sneakerForm.get('model')?.invalid && sneakerForm.get('model')?.touched">
+                @if (sneakerForm.get('model')?.invalid && sneakerForm.get('model')?.touched) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('model') }}
+                  </div>
+                }
+              </div>
+              
+              <div class="col-md-3">
+                <label class="form-label">Размер (35-52)*</label>
+                <input type="number" 
+                       class="form-control" 
+                       formControlName="size"
+                       [class.is-invalid]="sneakerForm.get('size')?.invalid && sneakerForm.get('size')?.touched">
+                @if (sneakerForm.get('size')?.invalid && sneakerForm.get('size')?.touched) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('size') }}
+                  </div>
+                }
+              </div>
+              
+              <div class="col-md-3">
+                <label class="form-label">Цвет*</label>
+                <input type="text" 
+                       class="form-control" 
+                       formControlName="color"
+                       [class.is-invalid]="sneakerForm.get('color')?.invalid && sneakerForm.get('color')?.touched">
+                @if (sneakerForm.get('color')?.invalid && sneakerForm.get('color')?.touched) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('color') }}
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Цена и количество -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Цена (₽)*</label>
+                <input type="number" 
+                       class="form-control" 
+                       formControlName="price"
+                       [class.is-invalid]="sneakerForm.get('price')?.invalid && sneakerForm.get('price')?.touched">
+                @if (sneakerForm.get('price')?.invalid && sneakerForm.get('price')?.touched) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('price') }}
+                  </div>
+                }
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label">Количество в наличии*</label>
+                <input type="number" 
+                       class="form-control" 
+                       formControlName="stockQuantity"
+                       [class.is-invalid]="sneakerForm.get('stockQuantity')?.invalid && sneakerForm.get('stockQuantity')?.touched">
+                @if (sneakerForm.get('stockQuantity')?.invalid && sneakerForm.get('stockQuantity')?.touched) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('stockQuantity') }}
+                  </div>
+                }
+              </div>
+              
+              <div class="col-md-4">
+                <label class="form-label">Дата выпуска*</label>
+                <input type="date" 
+                       class="form-control" 
+                       formControlName="releaseDate"
+                       [class.is-invalid]="sneakerForm.get('releaseDate')?.invalid && sneakerForm.get('releaseDate')?.touched">
+                @if (sneakerForm.get('releaseDate')?.invalid && sneakerForm.get('releaseDate')?.touched) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('releaseDate') }}
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Чекбокс -->
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" 
+                       type="checkbox" 
+                       id="isLimitedEdition"
+                       formControlName="isLimitedEdition">
+                <label class="form-check-label" for="isLimitedEdition">
+                  Лимитированная серия
+                </label>
+              </div>
+            </div>
+
+            <!-- Кнопки -->
+            <div class="d-flex justify-content-between">
+              <button type="button" 
+                      class="btn btn-outline-secondary"
+                      routerLink="/sneakers">
+                <i class="fa fa-arrow-left me-1"></i>Назад
+              </button>
+              
+              <button type="submit" 
+                      class="btn btn-primary"
+                      [disabled]="sneakerForm.invalid || isLoading">
+                @if (isLoading) {
+                  <i class="fa fa-spinner fa-spin me-1"></i> Сохранение...
+                } @else {
+                  <i class="fa fa-save me-1"></i>
+                  @if (isEditMode) {
+                    Сохранить изменения
+                  } @else {
+                    Добавить кроссовки
+                  }
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

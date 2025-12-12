@@ -104,8 +104,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseCors("AllowAngularApp");
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -129,75 +130,206 @@ using (var scope = app.Services.CreateScope())
     }
     
     // Seed data if tables are empty
-    if (!dbContext.Sneakers.Any())
-    {
-        dbContext.Sneakers.AddRange(
-            new Sneaker
+    // Seed data if tables are empty
+if (!dbContext.Sneakers.Any())
+{
+    dbContext.Sneakers.AddRange(
+        new Sneaker
+        {
+            Id = 1,
+            Name = "Air Jordan 1 Retro High",
+            Brand = "Nike",
+            Model = "Jordan 1",
+            Size = 42,
+            Color = "Black/Red",
+            Price = 15000,
+            StockQuantity = 10,
+            ReleaseDate = new DateTime(2023, 1, 15),
+            IsLimitedEdition = false
+        },
+        new Sneaker
+        {
+            Id = 2,
+            Name = "Yeezy Boost 350 V2",
+            Brand = "Adidas",
+            Model = "Yeezy 350",
+            Size = 43,
+            Color = "Zebra",
+            Price = 25000,
+            StockQuantity = 5,
+            ReleaseDate = new DateTime(2023, 3, 20),
+            IsLimitedEdition = true
+        },
+        new Sneaker
+        {
+            Id = 3,
+            Name = "Classic Leather",
+            Brand = "Reebok",
+            Model = "Classic",
+            Size = 41,
+            Color = "White",
+            Price = 8000,
+            StockQuantity = 20,
+            ReleaseDate = new DateTime(2022, 6, 10),
+            IsLimitedEdition = false
+        },
+        new Sneaker
+        {
+            Id = 4,
+            Name = "Air Max 97",
+            Brand = "Nike",
+            Model = "Air Max",
+            Size = 44,
+            Color = "Silver Bullet",
+            Price = 18000,
+            StockQuantity = 8,
+            ReleaseDate = new DateTime(2023, 5, 15),
+            IsLimitedEdition = true
+        },
+        new Sneaker
+        {
+            Id = 5,
+            Name = "Ultraboost 22",
+            Brand = "Adidas",
+            Model = "Ultraboost",
+            Size = 42,
+            Color = "Black",
+            Price = 14000,
+            StockQuantity = 15,
+            ReleaseDate = new DateTime(2023, 2, 28),
+            IsLimitedEdition = false
+        },
+        new Sneaker
+        {
+            Id = 6,
+            Name = "Chuck Taylor All Star",
+            Brand = "Converse",
+            Model = "All Star",
+            Size = 40,
+            Color = "Red",
+            Price = 5000,
+            StockQuantity = 30,
+            ReleaseDate = new DateTime(2022, 12, 1),
+            IsLimitedEdition = false
+        },
+        new Sneaker
+        {
+            Id = 7,
+            Name = "Gel-Kayano 28",
+            Brand = "Asics",
+            Model = "Kayano",
+            Size = 43,
+            Color = "Blue/Orange",
+            Price = 12000,
+            StockQuantity = 12,
+            ReleaseDate = new DateTime(2023, 4, 10),
+            IsLimitedEdition = false
+        }
+    );
+}
+
+if (!dbContext.Orders.Any())
+{
+    dbContext.Orders.AddRange(
+        new Order
+        {
+            Id = 1,
+            CustomerName = "Иван Иванов",
+            CustomerEmail = "ivan@example.com",
+            CustomerPhone = "+79991234567",
+            OrderDate = DateTime.Now.AddDays(-10),
+            ShippingAddress = "ул. Ленина, д. 10, кв. 5",
+            Status = OrderStatus.Delivered,
+            TotalAmount = 15000,
+            OrderItems = new List<OrderItem>
             {
-                Id = 1,
-                Name = "Air Jordan 1 Retro High",
-                Brand = "Nike",
-                Model = "Jordan 1",
-                Size = 42,
-                Color = "Black/Red",
-                Price = 15000,
-                StockQuantity = 10,
-                ReleaseDate = new DateTime(2023, 1, 15),
-                IsLimitedEdition = false
-            },
-            new Sneaker
-            {
-                Id = 2,
-                Name = "Yeezy Boost 350 V2",
-                Brand = "Adidas",
-                Model = "Yeezy 350",
-                Size = 43,
-                Color = "Zebra",
-                Price = 25000,
-                StockQuantity = 5,
-                ReleaseDate = new DateTime(2023, 3, 20),
-                IsLimitedEdition = true
-            },
-            new Sneaker
-            {
-                Id = 3,
-                Name = "Classic Leather",
-                Brand = "Reebok",
-                Model = "Classic",
-                Size = 41,
-                Color = "White",
-                Price = 8000,
-                StockQuantity = 20,
-                ReleaseDate = new DateTime(2022, 6, 10),
-                IsLimitedEdition = false
+                new OrderItem
+                {
+                    Id = 1,
+                    OrderId = 1,
+                    SneakerId = 1,
+                    SneakerName = "Air Jordan 1 Retro High",
+                    Quantity = 1,
+                    UnitPrice = 15000,
+                    Size = 42
+                }
             }
-        );
-    }
-    
-    if (!dbContext.Users.Any())
-    {
-        dbContext.Users.AddRange(
-            new User
+        },
+        new Order
+        {
+            Id = 2,
+            CustomerName = "Петр Петров",
+            CustomerEmail = "petr@example.com",
+            CustomerPhone = "+79992345678",
+            OrderDate = DateTime.Now.AddDays(-5),
+            ShippingAddress = "ул. Пушкина, д. 25",
+            Status = OrderStatus.Processing,
+            TotalAmount = 25000,
+            OrderItems = new List<OrderItem>
             {
-                Id = 1,
-                Username = "admin",
-                Email = "admin@sneakerstore.com",
-                PasswordHash = "admin123",
-                Role = "admin"
-            },
-            new User
-            {
-                Id = 2,
-                Username = "user",
-                Email = "user@sneakerstore.com",
-                PasswordHash = "user123",
-                Role = "user"
+                new OrderItem
+                {
+                    Id = 2,
+                    OrderId = 2,
+                    SneakerId = 2,
+                    SneakerName = "Yeezy Boost 350 V2",
+                    Quantity = 1,
+                    UnitPrice = 25000,
+                    Size = 43
+                }
             }
-        );
-    }
-    
-    dbContext.SaveChanges();
-    Console.WriteLine("Database seeded successfully.");
+        },
+        new Order
+        {
+            Id = 3,
+            CustomerName = "Алексей Смирнов",
+            CustomerEmail = "alexey@example.com",
+            CustomerPhone = "+79993456789",
+            OrderDate = DateTime.Now.AddDays(-1),
+            ShippingAddress = "пр. Мира, д. 15, кв. 12",
+            Status = OrderStatus.Pending,
+            TotalAmount = 16000,
+            OrderItems = new List<OrderItem>
+            {
+                new OrderItem
+                {
+                    Id = 3,
+                    OrderId = 3,
+                    SneakerId = 1,
+                    SneakerName = "Air Jordan 1 Retro High",
+                    Quantity = 1,
+                    UnitPrice = 15000,
+                    Size = 42
+                }
+            }
+        }
+    );
+}
+
+if (!dbContext.Users.Any())
+{
+    dbContext.Users.AddRange(
+        new User
+        {
+            Id = 1,
+            Username = "admin",
+            Email = "admin@sneakerstore.com",
+            PasswordHash = "admin123",
+            Role = "admin"
+        },
+        new User
+        {
+            Id = 2,
+            Username = "user",
+            Email = "user@sneakerstore.com",
+            PasswordHash = "user123",
+            Role = "user"
+        }
+    );
+}
+
+dbContext.SaveChanges();
+Console.WriteLine("Database seeded successfully.");
 }
 
 app.Run();
