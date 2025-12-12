@@ -12,7 +12,6 @@ import { AuthService } from '../../services/auth.service';
 })
 export class HeaderComponent implements OnInit {
   showMenu = false;
-  showLoginButton = false;
   currentRoute = '';
 
   constructor(
@@ -32,14 +31,19 @@ export class HeaderComponent implements OnInit {
 
   private updateVisibility(): void {
     const isLoginPage = this.currentRoute === '/login';
-    const isHomePage = this.currentRoute === '/';
-    
-    this.showMenu = !isLoginPage && !isHomePage;
-    this.showLoginButton = !this.authService.isAuthenticated() && !isLoginPage && !isHomePage;
+    this.showMenu = this.authService.isAuthenticated() && !isLoginPage;
+  }
+
+  goHome(): void {
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.router.navigate(['/']);
+    }
   }
 
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/']);
   }
 }

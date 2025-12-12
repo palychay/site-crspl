@@ -8,18 +8,20 @@ import { FooterComponent } from './components/footer/footer.component';
   standalone: true,
   imports: [RouterOutlet, HeaderComponent, FooterComponent],
   template: `
-    <app-header></app-header>
-    <main class="flex-grow-1">
-      <router-outlet></router-outlet>
-    </main>
-    <app-footer></app-footer>
+    <div class="d-flex flex-column min-vh-100">
+      <app-header></app-header>
+      <main class="flex-grow-1">
+        <router-outlet></router-outlet>
+      </main>
+      <app-footer></app-footer>
+    </div>
   `,
   styles: [`
     main {
-      min-height: calc(100vh - 130px);
+      background-color: #f8f9fa;
     }
   `]
 })
 export class AppComponent {
-  title = 'SneakerStore Client';
+  title = 'SneakerStore Admin Panel';
 }

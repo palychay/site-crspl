@@ -14,6 +14,7 @@ namespace SneakerStoreAPI.Models
         [Required, EmailAddress]
         public string CustomerEmail { get; set; } = string.Empty;
 
+        [Required]
         public string CustomerPhone { get; set; } = string.Empty;
 
         public DateTime OrderDate { get; set; } = DateTime.Now;
@@ -25,7 +26,7 @@ namespace SneakerStoreAPI.Models
 
         public decimal TotalAmount { get; set; }
 
-        [JsonIgnore]
+        // Убрали JsonIgnore для отображения OrderItems
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 
@@ -36,5 +37,21 @@ namespace SneakerStoreAPI.Models
         Shipped,
         Delivered,
         Cancelled
+    }
+
+    public class CreateOrderRequest
+    {
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerEmail { get; set; } = string.Empty;
+        public string CustomerPhone { get; set; } = string.Empty;
+        public string ShippingAddress { get; set; } = string.Empty;
+        public List<OrderItemRequest> OrderItems { get; set; } = new();
+    }
+
+    public class OrderItemRequest
+    {
+        public int SneakerId { get; set; }
+        public int Quantity { get; set; }
+        public int Size { get; set; }
     }
 }

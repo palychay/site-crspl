@@ -20,6 +20,12 @@ import { PriceFormatPipe } from '../../pipes/price-format.pipe';
         <div class="badge bg-primary">Администратор</div>
       </div>
 
+      @if (errorMessage) {
+        <div class="alert alert-danger mb-3">
+          <i class="fa fa-exclamation-triangle me-2"></i>{{ errorMessage }}
+        </div>
+      }
+
       @if (isLoading) {
         <div class="text-center my-5">
           <div class="spinner-border text-primary" role="status">
@@ -67,7 +73,7 @@ import { PriceFormatPipe } from '../../pipes/price-format.pipe';
           <div class="mt-3 text-muted small">
             <i class="fa fa-info-circle me-1"></i> Всего заказов: {{orders.length}}
           </div>
-        } @else {
+        } @else if (!errorMessage) {
           <div class="text-center py-5">
             <div class="card">
               <div class="card-body py-5">
@@ -101,6 +107,7 @@ import { PriceFormatPipe } from '../../pipes/price-format.pipe';
 export class OrderListComponent implements OnInit, OnDestroy {
   orders: Order[] = [];
   isLoading = false;
+  errorMessage = '';
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -120,6 +127,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
 
   loadOrders(): void {
     this.isLoading = true;
+    this.errorMessage = '';
     
     this.orderService.getOrders()
       .pipe(takeUntil(this.destroy$))
@@ -129,14 +137,20 @@ export class OrderListComponent implements OnInit, OnDestroy {
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error loading orders:', error);
           this.isLoading = false;
+          
           if (error.status === 401) {
             this.authService.logout();
             this.router.navigate(['/login']);
+          } else if (error.status === 403) {
+            this.errorMessage = 'У вас недостаточно прав для просмотра заказов';
+            this.router.navigate(['/dashboard']);
+          } else if (error.status === 500) {
+            this.errorMessage = 'Ошибка сервера при загрузке заказов. Пожалуйста, попробуйте позже.';
           } else {
-            this.orders = [];
+            this.errorMessage = 'Не удалось загрузить заказы';
           }
+          this.orders = [];
         }
       });
   }

@@ -7,7 +7,7 @@ import { LoginRequest, RegisterRequest, AuthResponse, User } from '../models/use
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5225/api';
+  private apiUrl = 'http://localhost:5225/api/auth';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -16,12 +16,12 @@ export class AuthService {
   }
 
   login(loginRequest: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, loginRequest)
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, loginRequest)
       .pipe(tap(response => this.setSession(response)));
   }
 
   register(registerRequest: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, registerRequest)
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, registerRequest)
       .pipe(tap(response => this.setSession(response)));
   }
 
@@ -46,19 +46,34 @@ export class AuthService {
 
   private setSession(authResponse: AuthResponse): void {
     localStorage.setItem('token', authResponse.token);
+    
+    // Простая имитация получения ID (в реальном приложении декодируйте JWT)
+    const userId = this.decodeToken(authResponse.token)?.userId || 0;
+    
     const user: User = {
-      id: 0, // ID можно получить из токена или другого места
+      id: userId,
       username: authResponse.username,
       email: authResponse.email,
       role: authResponse.role
     };
+    
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUserSubject.next(user);
   }
 
+  private decodeToken(token: string): any {
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch {
+      return null;
+    }
+  }
+
   private loadUserFromStorage(): void {
     const userStr = localStorage.getItem('user');
-    if (userStr) {
+    const token = localStorage.getItem('token');
+    
+    if (userStr && token) {
       const user = JSON.parse(userStr);
       this.currentUserSubject.next(user);
     }

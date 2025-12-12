@@ -25,66 +25,92 @@ namespace SneakerStoreAPI.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponse>> Login(LoginModel model)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == model.Username);
-
-            if (user == null || user.PasswordHash != model.Password)
+            try
             {
-                return Unauthorized(new { message = "Invalid username or password" });
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Username == model.Username);
+
+                if (user == null)
+                {
+                    return Unauthorized(new { message = "Пользователь с таким именем не найден" });
+                }
+
+                if (user.PasswordHash != model.Password)
+                {
+                    return Unauthorized(new { message = "Неверный пароль" });
+                }
+
+                // Проверяем, что пользователь администратор
+                if (user.Role != "admin")
+                {
+                    return Unauthorized(new { message = "Доступ разрешен только администраторам" });
+                }
+
+                var token = GenerateJwtToken(user);
+                
+                return Ok(new AuthResponse
+                {
+                    Token = token,
+                    Username = user.Username,
+                    Email = user.Email,
+                    Role = user.Role,
+                    Expires = DateTime.UtcNow.AddDays(7)
+                });
             }
-
-            var token = GenerateJwtToken(user);
-            
-            return Ok(new AuthResponse
+            catch (Exception ex)
             {
-                Token = token,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role,
-                Expires = DateTime.UtcNow.AddDays(7)
-            });
+                return StatusCode(500, new { message = $"Ошибка сервера: {ex.Message}" });
+            }
         }
 
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponse>> Register(RegisterModel model)
         {
-            if (await _context.Users.AnyAsync(u => u.Username == model.Username))
+            try
             {
-                return BadRequest(new { message = "Username already exists" });
+                if (await _context.Users.AnyAsync(u => u.Username == model.Username))
+                {
+                    return BadRequest(new { message = "Пользователь с таким именем уже существует" });
+                }
+
+                if (await _context.Users.AnyAsync(u => u.Email == model.Email))
+                {
+                    return BadRequest(new { message = "Пользователь с таким email уже существует" });
+                }
+
+                // Все новые пользователи создаются как администраторы
+                var user = new User
+                {
+                    Username = model.Username,
+                    Email = model.Email,
+                    PasswordHash = model.Password,
+                    Role = "admin"
+                };
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                var token = GenerateJwtToken(user);
+                
+                return Ok(new AuthResponse
+                {
+                    Token = token,
+                    Username = user.Username,
+                    Email = user.Email,
+                    Role = user.Role,
+                    Expires = DateTime.UtcNow.AddDays(7)
+                });
             }
-
-            if (await _context.Users.AnyAsync(u => u.Email == model.Email))
+            catch (Exception ex)
             {
-                return BadRequest(new { message = "Email already exists" });
+                return StatusCode(500, new { message = $"Ошибка сервера: {ex.Message}" });
             }
-
-            var user = new User
-            {
-                Username = model.Username,
-                Email = model.Email,
-                PasswordHash = model.Password,
-                Role = "user"
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            var token = GenerateJwtToken(user);
-            
-            return Ok(new AuthResponse
-            {
-                Token = token,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role,
-                Expires = DateTime.UtcNow.AddDays(7)
-            });
         }
 
         private string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]!);
+            var key = Encoding.ASCII.GetBytes("your-256-bit-secret-key-minimum-32-characters-long-here");
             
             var tokenDescriptor = new SecurityTokenDescriptor
             {

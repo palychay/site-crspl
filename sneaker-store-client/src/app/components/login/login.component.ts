@@ -47,22 +47,25 @@ export class LoginComponent {
       this.isLoading = true;
       this.errorMessage = '';
       
-      this.authService.login(this.loginForm.value).subscribe({
+      const credentials = this.loginForm.value;
+      
+      this.authService.login(credentials).subscribe({
         next: () => {
           this.isLoading = false;
-          this.router.navigate(['/sneakers']);
+          this.router.navigate(['/dashboard']);
         },
         error: (error) => {
           this.isLoading = false;
           
-          if (error.status === 401) {
+          if (error.error?.message) {
+            this.errorMessage = error.error.message;
+          } else if (error.status === 401) {
             this.errorMessage = 'Неверное имя пользователя или пароль';
-          } else if (error.status === 0 || error.status === 500) {
-            this.errorMessage = 'Ошибка подключения к серверу. Проверьте, запущен ли сервер API.';
+          } else if (error.status === 0) {
+            this.errorMessage = 'Не удалось подключиться к серверу. Убедитесь, что сервер запущен на localhost:5225';
           } else {
-            this.errorMessage = error.error?.message || 'Произошла ошибка при входе';
+            this.errorMessage = 'Произошла ошибка при входе. Код ошибки: ' + (error.status || 'неизвестно');
           }
-          console.error('Login error:', error);
         }
       });
     }
@@ -73,22 +76,25 @@ export class LoginComponent {
       this.isLoading = true;
       this.errorMessage = '';
       
-      this.authService.register(this.registerForm.value).subscribe({
+      const userData = this.registerForm.value;
+      
+      this.authService.register(userData).subscribe({
         next: () => {
           this.isLoading = false;
-          this.router.navigate(['/sneakers']);
+          this.router.navigate(['/dashboard']);
         },
         error: (error) => {
           this.isLoading = false;
           
-          if (error.status === 400) {
-            this.errorMessage = error.error?.message || 'Пользователь уже существует';
-          } else if (error.status === 0 || error.status === 500) {
-            this.errorMessage = 'Ошибка подключения к серверу';
+          if (error.error?.message) {
+            this.errorMessage = error.error.message;
+          } else if (error.status === 400) {
+            this.errorMessage = 'Пользователь с таким именем или email уже существует';
+          } else if (error.status === 0) {
+            this.errorMessage = 'Не удалось подключиться к серверу';
           } else {
-            this.errorMessage = error.error?.message || 'Произошла ошибка при регистрации';
+            this.errorMessage = 'Произошла ошибка при регистрации';
           }
-          console.error('Register error:', error);
         }
       });
     }

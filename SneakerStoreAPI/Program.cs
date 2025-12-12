@@ -320,10 +320,10 @@ if (!dbContext.Users.Any())
         new User
         {
             Id = 2,
-            Username = "user",
-            Email = "user@sneakerstore.com",
-            PasswordHash = "user123",
-            Role = "user"
+            Username = "manager",
+            Email = "manager@sneakerstore.com",
+            PasswordHash = "manager123",
+            Role = "admin"
         }
     );
 }
