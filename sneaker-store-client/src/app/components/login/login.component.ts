@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { NotificationService } from '../../services/notification.service'; // Добавляем
 
 @Component({
   selector: 'app-login',
@@ -20,7 +21,8 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService // Добавляем
   ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required]],
@@ -52,22 +54,39 @@ export class LoginComponent {
       this.authService.login(credentials).subscribe({
         next: () => {
           this.isLoading = false;
+          this.notificationService.success(
+            'Добро пожаловать в панель администратора!', 
+            'Вход выполнен успешно'
+          );
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
           this.isLoading = false;
           
-          if (error.error?.message) {
-            this.errorMessage = error.error.message;
-          } else if (error.status === 401) {
-            this.errorMessage = 'Неверное имя пользователя или пароль';
+          // Убираем старый вывод и используем notificationService
+          let message = 'Произошла ошибка при входе';
+          
+          if (error.status === 401) {
+            message = 'Неверное имя пользователя или пароль';
           } else if (error.status === 0) {
-            this.errorMessage = 'Не удалось подключиться к серверу. Убедитесь, что сервер запущен на localhost:5225';
-          } else {
-            this.errorMessage = 'Произошла ошибка при входе. Код ошибки: ' + (error.status || 'неизвестно');
+            message = 'Не удалось подключиться к серверу. Убедитесь, что сервер запущен на localhost:5225';
+          } else if (error.error?.message) {
+            message = error.error.message;
           }
+          
+          // Показываем красивую ошибку
+          this.notificationService.error(message, 'Ошибка авторизации');
+          
+          // Также показываем в форме (опционально)
+          this.errorMessage = message;
         }
       });
+    } else {
+      // Показываем ошибку валидации
+      this.notificationService.warning(
+        'Пожалуйста, заполните все обязательные поля корректно',
+        'Ошибка заполнения формы'
+      );
     }
   }
 
@@ -81,22 +100,34 @@ export class LoginComponent {
       this.authService.register(userData).subscribe({
         next: () => {
           this.isLoading = false;
+          this.notificationService.success(
+            'Регистрация прошла успешно! Теперь вы можете войти в систему.',
+            'Успешная регистрация'
+          );
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
           this.isLoading = false;
           
-          if (error.error?.message) {
-            this.errorMessage = error.error.message;
-          } else if (error.status === 400) {
-            this.errorMessage = 'Пользователь с таким именем или email уже существует';
+          let message = 'Произошла ошибка при регистрации';
+          
+          if (error.status === 400) {
+            message = 'Пользователь с таким именем или email уже существует';
           } else if (error.status === 0) {
-            this.errorMessage = 'Не удалось подключиться к серверу';
-          } else {
-            this.errorMessage = 'Произошла ошибка при регистрации';
+            message = 'Не удалось подключиться к серверу';
+          } else if (error.error?.message) {
+            message = error.error.message;
           }
+          
+          this.notificationService.error(message, 'Ошибка регистрации');
+          this.errorMessage = message;
         }
       });
+    } else {
+      this.notificationService.warning(
+        'Пожалуйста, заполните все поля корректно',
+        'Ошибка заполнения формы'
+      );
     }
   }
 

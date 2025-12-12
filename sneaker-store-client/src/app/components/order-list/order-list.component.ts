@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
@@ -10,7 +10,7 @@ import { PriceFormatPipe } from '../../pipes/price-format.pipe';
 @Component({
   selector: 'app-order-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, DatePipe, PriceFormatPipe],
+  imports: [CommonModule, RouterModule, PriceFormatPipe],
   template: `
     <div class="container mt-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
@@ -125,11 +125,11 @@ export class OrderListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadOrders(): void {
+  loadOrders(forceRefresh = false): void {
     this.isLoading = true;
     this.errorMessage = '';
     
-    this.orderService.getOrders()
+    this.orderService.getOrders(forceRefresh)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (orders) => {
@@ -138,6 +138,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.isLoading = false;
+          this.errorMessage = 'Не удалось загрузить заказы';
           
           if (error.status === 401) {
             this.authService.logout();
@@ -145,12 +146,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
           } else if (error.status === 403) {
             this.errorMessage = 'У вас недостаточно прав для просмотра заказов';
             this.router.navigate(['/dashboard']);
-          } else if (error.status === 500) {
-            this.errorMessage = 'Ошибка сервера при загрузке заказов. Пожалуйста, попробуйте позже.';
-          } else {
-            this.errorMessage = 'Не удалось загрузить заказы';
           }
-          this.orders = [];
         }
       });
   }

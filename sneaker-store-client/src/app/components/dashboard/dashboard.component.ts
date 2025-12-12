@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SneakerService } from '../../services/sneaker.service';
 import { OrderService } from '../../services/order.service';
 import { AuthService } from '../../services/auth.service';
 import { PriceFormatPipe } from '../../pipes/price-format.pipe';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -191,11 +192,13 @@ export class DashboardComponent implements OnInit {
   recentOrders: any[] = [];
   brandStats: any[] = [];
   errorMessage = '';
+  isLoading = true;
 
   constructor(
     private sneakerService: SneakerService,
     private orderService: OrderService,
-    public authService: AuthService
+    public authService: AuthService,
+    private cdr: ChangeDetectorRef // Добавляем ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -204,14 +207,19 @@ export class DashboardComponent implements OnInit {
 
   loadDashboardData(): void {
     this.errorMessage = '';
+    this.isLoading = true;
 
-    // Загружаем кроссовки для статистики
-    this.sneakerService.getSneakers(true).subscribe({
-      next: (sneakers) => {
+    // Используем forkJoin для параллельной загрузки
+    forkJoin({
+      sneakers: this.sneakerService.getSneakers(true),
+      orders: this.orderService.getOrders()
+    }).subscribe({
+      next: ({ sneakers, orders }) => {
+        // Обрабатываем кроссовки
         this.stats.totalSneakers = sneakers.length;
         this.stats.inStock = sneakers.filter(s => s.stockQuantity > 0).length;
         
-        // Простая статистика по брендам
+        // Статистика по брендам
         const brandMap = new Map();
         sneakers.forEach(sneaker => {
           brandMap.set(sneaker.brand, (brandMap.get(sneaker.brand) || 0) + 1);
@@ -221,30 +229,32 @@ export class DashboardComponent implements OnInit {
           .map(([brand, count]) => ({ brand, count }))
           .sort((a, b) => b.count - a.count)
           .slice(0, 5);
-      },
-      error: (error) => {
-        this.stats.totalSneakers = 0;
-        this.stats.inStock = 0;
-        this.brandStats = [];
-      }
-    });
 
-    // Загружаем заказы
-    this.orderService.getOrders().subscribe({
-      next: (orders) => {
+        // Обрабатываем заказы
         this.recentOrders = orders.slice(0, 5);
         this.stats.totalOrders = orders.length;
         this.stats.totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+        this.isLoading = false;
+        
+        // ВАЖНО: Запускаем обнаружение изменений!
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.recentOrders = [];
-        this.stats.totalOrders = 0;
-        this.stats.totalRevenue = 0;
+        this.brandStats = [];
+        this.isLoading = false;
+        
         if (error.status === 500) {
           this.errorMessage = 'Ошибка сервера при загрузке данных. Пожалуйста, попробуйте позже.';
         } else if (error.status === 401) {
           this.authService.logout();
+        } else {
+          this.errorMessage = 'Не удалось загрузить данные';
         }
+        
+        // ВАЖНО: Запускаем обнаружение изменений даже при ошибке!
+        this.cdr.detectChanges();
       }
     });
   }

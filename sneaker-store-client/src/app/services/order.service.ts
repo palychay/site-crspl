@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, of, shareReplay } from 'rxjs';
 import { Order } from '../models/order.model';
 import { environment } from '../../environments/environment';
 
@@ -10,15 +9,20 @@ import { environment } from '../../environments/environment';
 })
 export class OrderService {
   private apiUrl = environment.apiUrl;
+  private cache$?: Observable<Order[]>;
 
   constructor(private http: HttpClient) { }
 
-  getOrders(): Observable<Order[]> {
-    return this.http.get<Order[]>(`${this.apiUrl}/orders`).pipe(
-      catchError(error => {
-        throw error;
-      })
+  getOrders(forceRefresh = false): Observable<Order[]> {
+    if (!forceRefresh && this.cache$) {
+      return this.cache$;
+    }
+    
+    this.cache$ = this.http.get<Order[]>(`${this.apiUrl}/orders`).pipe(
+      shareReplay(1)
     );
+    
+    return this.cache$;
   }
 
   getOrder(id: number): Observable<Order> {
@@ -39,5 +43,9 @@ export class OrderService {
     if (endDate) params = params.set('endDate', endDate.toISOString());
     
     return this.http.get<any>(`${this.apiUrl}/orders/revenue`, { params });
+  }
+
+  clearCache(): void {
+    this.cache$ = undefined;
   }
 }

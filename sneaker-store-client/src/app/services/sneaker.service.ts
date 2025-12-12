@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { Observable, of, shareReplay } from 'rxjs';
 import { Sneaker } from '../models/sneaker.model';
 
 @Injectable({
@@ -8,22 +8,20 @@ import { Sneaker } from '../models/sneaker.model';
 })
 export class SneakerService {
   private apiUrl = 'http://localhost:5225/api/sneakers';
-  private sneakersCache = new BehaviorSubject<Sneaker[]>([]);
-  private cacheLoaded = false;
+  private cache$?: Observable<Sneaker[]>;
 
   constructor(private http: HttpClient) { }
 
   getSneakers(forceRefresh = false): Observable<Sneaker[]> {
-    if (!forceRefresh && this.cacheLoaded && this.sneakersCache.value.length > 0) {
-      return this.sneakersCache.asObservable();
+    if (!forceRefresh && this.cache$) {
+      return this.cache$;
     }
     
-    return this.http.get<Sneaker[]>(this.apiUrl).pipe(
-      tap(sneakers => {
-        this.sneakersCache.next(sneakers);
-        this.cacheLoaded = true;
-      })
+    this.cache$ = this.http.get<Sneaker[]>(this.apiUrl).pipe(
+      shareReplay(1)
     );
+    
+    return this.cache$;
   }
 
   getSneaker(id: number): Observable<Sneaker> {
@@ -32,26 +30,16 @@ export class SneakerService {
 
   createSneaker(sneaker: Sneaker): Observable<Sneaker> {
     return this.http.post<Sneaker>(this.apiUrl, sneaker).pipe(
-      tap(() => {
-        this.cacheLoaded = false;
-      })
+      shareReplay(1)
     );
   }
 
   updateSneaker(id: number, sneaker: Sneaker): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, sneaker).pipe(
-      tap(() => {
-        this.cacheLoaded = false;
-      })
-    );
+    return this.http.put<void>(`${this.apiUrl}/${id}`, sneaker);
   }
 
   deleteSneaker(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-      tap(() => {
-        this.cacheLoaded = false;
-      })
-    );
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
   searchSneakers(params: {
@@ -73,7 +61,6 @@ export class SneakerService {
   }
 
   clearCache(): void {
-    this.cacheLoaded = false;
-    this.sneakersCache.next([]);
+    this.cache$ = undefined;
   }
 }
