@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -16,7 +16,8 @@ export class HeaderComponent implements OnInit {
 
   constructor(
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -25,6 +26,7 @@ export class HeaderComponent implements OnInit {
     ).subscribe((event: any) => {
       this.currentRoute = event.url;
       this.updateVisibility();
+      this.cdr.detectChanges();
     });
     this.updateVisibility();
   }
@@ -32,6 +34,7 @@ export class HeaderComponent implements OnInit {
   private updateVisibility(): void {
     const isLoginPage = this.currentRoute === '/login';
     this.showMenu = this.authService.isAuthenticated() && !isLoginPage;
+    this.cdr.detectChanges();
   }
 
   goHome(): void {
@@ -45,5 +48,6 @@ export class HeaderComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/']);
+    this.cdr.detectChanges();
   }
 }

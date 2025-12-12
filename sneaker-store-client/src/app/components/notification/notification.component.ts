@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationService } from '../../services/notification.service';
 import { Subject, takeUntil } from 'rxjs';
@@ -49,20 +49,20 @@ import { Subject, takeUntil } from 'rxjs';
     }
   `]
 })
-export class NotificationComponent implements OnDestroy {
+export class NotificationComponent implements OnInit, OnDestroy {
   notifications: any[] = [];
   private destroy$ = new Subject<void>();
 
   constructor(
     private notificationService: NotificationService,
-    private cdr: ChangeDetectorRef // Добавляем ChangeDetectorRef
-  ) {
-    // Подписываемся на изменения уведомлений
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
     this.notificationService.notifications$
       .pipe(takeUntil(this.destroy$))
       .subscribe(notifications => {
         this.notifications = notifications;
-        // ВАЖНО: Запускаем обнаружение изменений!
         this.cdr.detectChanges();
       });
   }

@@ -17,7 +17,7 @@ export class NotificationService {
   notifications$ = this.notifications.asObservable();
   private idCounter = 0;
 
-  constructor(private zone: NgZone) {} // Добавляем NgZone
+  constructor(private zone: NgZone) {}
 
   getNotifications(): Notification[] {
     return this.notifications.value;
@@ -27,13 +27,11 @@ export class NotificationService {
     const id = ++this.idCounter;
     const newNotification = { ...notification, id };
     
-    // ВАЖНО: Запускаем в зоне Angular для автоматического обнаружения изменений
     this.zone.run(() => {
       const current = this.notifications.value;
       this.notifications.next([...current, newNotification]);
     });
     
-    // Автоудаление через заданное время
     if (notification.duration !== 0) {
       setTimeout(() => {
         this.remove(id);

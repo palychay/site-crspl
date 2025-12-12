@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { SneakerService } from '../../services/sneaker.service';
 import { Sneaker } from '../../models/sneaker.model';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-sneaker-form',
@@ -16,12 +17,15 @@ export class SneakerFormComponent implements OnInit {
   isEditMode = false;
   sneakerId?: number;
   isLoading = false;
+  errorMessage = '';
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private sneakerService: SneakerService
+    private sneakerService: SneakerService,
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {
     this.sneakerForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -61,9 +65,11 @@ export class SneakerFormComponent implements OnInit {
           releaseDate: formattedDate
         });
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isLoading = false;
+        this.notificationService.error('Не удалось загрузить кроссовки', 'Ошибка загрузки');
         this.router.navigate(['/sneakers']);
       }
     });
@@ -82,10 +88,13 @@ export class SneakerFormComponent implements OnInit {
           next: () => {
             this.isLoading = false;
             this.sneakerService.clearCache();
+            this.notificationService.success('Кроссовки успешно обновлены', 'Успех');
             this.router.navigate(['/sneakers']);
           },
-          error: () => {
+          error: (error) => {
             this.isLoading = false;
+            this.notificationService.error('Не удалось обновить кроссовки', 'Ошибка');
+            this.cdr.detectChanges();
           }
         });
       } else {
@@ -93,13 +102,21 @@ export class SneakerFormComponent implements OnInit {
           next: () => {
             this.isLoading = false;
             this.sneakerService.clearCache();
+            this.notificationService.success('Кроссовки успешно добавлены', 'Успех');
             this.router.navigate(['/sneakers']);
           },
-          error: () => {
+          error: (error) => {
             this.isLoading = false;
+            this.notificationService.error('Не удалось добавить кроссовки', 'Ошибка');
+            this.cdr.detectChanges();
           }
         });
       }
+    } else {
+      this.notificationService.warning(
+        'Пожалуйста, заполните все обязательные поля корректно',
+        'Ошибка валидации'
+      );
     }
   }
 

@@ -29,9 +29,7 @@ export class SneakerService {
   }
 
   createSneaker(sneaker: Sneaker): Observable<Sneaker> {
-    return this.http.post<Sneaker>(this.apiUrl, sneaker).pipe(
-      shareReplay(1)
-    );
+    return this.http.post<Sneaker>(this.apiUrl, sneaker);
   }
 
   updateSneaker(id: number, sneaker: Sneaker): Observable<void> {

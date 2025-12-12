@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -29,7 +29,8 @@ export class SneakerListComponent implements OnInit, OnDestroy {
     private sneakerService: SneakerService,
     public authService: AuthService,
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.filterForm = this.fb.group({
       brand: [''],
@@ -43,7 +44,6 @@ export class SneakerListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadSneakers();
     
-    // Добавляем отслеживание изменений фильтров с задержкой
     this.filterForm.valueChanges
       .pipe(
         debounceTime(300),
@@ -72,6 +72,7 @@ export class SneakerListComponent implements OnInit, OnDestroy {
           this.filteredSneakers = [...sneakers];
           this.isLoading = false;
           this.sortSneakers();
+          this.cdr.detectChanges();
         },
         error: (error) => {
           console.error('Error loading sneakers:', error);
@@ -81,7 +82,11 @@ export class SneakerListComponent implements OnInit, OnDestroy {
           if (error.status === 401) {
             this.authService.logout();
             this.router.navigate(['/login']);
+          } else {
+            this.sneakers = [];
+            this.filteredSneakers = [];
           }
+          this.cdr.detectChanges();
         }
       });
   }
@@ -89,7 +94,6 @@ export class SneakerListComponent implements OnInit, OnDestroy {
   applyFilters(): void {
     const filters = this.filterForm.value;
     
-    // Проверяем, есть ли активные фильтры
     const hasActiveFilters = Object.values(filters).some(
       value => value !== null && value !== '' && value !== undefined
     );
@@ -101,16 +105,19 @@ export class SneakerListComponent implements OnInit, OnDestroy {
           next: (sneakers) => {
             this.filteredSneakers = sneakers;
             this.sortSneakers();
+            this.cdr.detectChanges();
           },
           error: (error) => {
             console.error('Search error:', error);
             this.filteredSneakers = [...this.sneakers];
             this.sortSneakers();
+            this.cdr.detectChanges();
           }
         });
     } else {
       this.filteredSneakers = [...this.sneakers];
       this.sortSneakers();
+      this.cdr.detectChanges();
     }
   }
 
@@ -122,6 +129,9 @@ export class SneakerListComponent implements OnInit, OnDestroy {
       minSize: '',
       maxSize: ''
     });
+    this.filteredSneakers = [...this.sneakers];
+    this.sortSneakers();
+    this.cdr.detectChanges();
   }
 
   sortSneakers(): void {
@@ -148,6 +158,7 @@ export class SneakerListComponent implements OnInit, OnDestroy {
       this.sortDirection = 'asc';
     }
     this.sortSneakers();
+    this.cdr.detectChanges();
   }
 
   deleteSneaker(id: number): void {
@@ -156,11 +167,10 @@ export class SneakerListComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
-            // Удаляем из локального массива
             this.sneakers = this.sneakers.filter(s => s.id !== id);
             this.filteredSneakers = this.filteredSneakers.filter(s => s.id !== id);
-            // Очищаем кэш
             this.sneakerService.clearCache();
+            this.cdr.detectChanges();
           },
           error: (error) => {
             console.error('Error deleting sneaker:', error);
@@ -177,6 +187,7 @@ export class SneakerListComponent implements OnInit, OnDestroy {
 
   toggleViewMode(mode: 'cards' | 'table'): void {
     this.viewMode = mode;
+    this.cdr.detectChanges();
   }
 
   getSortIcon(field: string): string {

@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { NotificationService } from '../../services/notification.service'; // Добавляем
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-login',
@@ -22,7 +22,8 @@ export class LoginComponent {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private notificationService: NotificationService // Добавляем
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required]],
@@ -63,7 +64,6 @@ export class LoginComponent {
         error: (error) => {
           this.isLoading = false;
           
-          // Убираем старый вывод и используем notificationService
           let message = 'Произошла ошибка при входе';
           
           if (error.status === 401) {
@@ -74,15 +74,12 @@ export class LoginComponent {
             message = error.error.message;
           }
           
-          // Показываем красивую ошибку
           this.notificationService.error(message, 'Ошибка авторизации');
-          
-          // Также показываем в форме (опционально)
           this.errorMessage = message;
+          this.cdr.detectChanges();
         }
       });
     } else {
-      // Показываем ошибку валидации
       this.notificationService.warning(
         'Пожалуйста, заполните все обязательные поля корректно',
         'Ошибка заполнения формы'
@@ -121,6 +118,7 @@ export class LoginComponent {
           
           this.notificationService.error(message, 'Ошибка регистрации');
           this.errorMessage = message;
+          this.cdr.detectChanges();
         }
       });
     } else {
@@ -136,5 +134,6 @@ export class LoginComponent {
     this.errorMessage = '';
     this.loginForm.reset();
     this.registerForm.reset();
+    this.cdr.detectChanges();
   }
 }

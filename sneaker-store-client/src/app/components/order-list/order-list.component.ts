@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
@@ -15,7 +15,7 @@ import { PriceFormatPipe } from '../../pipes/price-format.pipe';
     <div class="container mt-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h4>
-          <i class="fa fa-list-alt me-2"></i>Все заказы
+          <i class="fa fa-list-alt me-2"></i>Всего заказов
         </h4>
         <div class="badge bg-primary">Администратор</div>
       </div>
@@ -113,7 +113,8 @@ export class OrderListComponent implements OnInit, OnDestroy {
   constructor(
     private orderService: OrderService,
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -135,6 +136,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
         next: (orders) => {
           this.orders = orders;
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
         error: (error) => {
           this.isLoading = false;
@@ -147,6 +149,8 @@ export class OrderListComponent implements OnInit, OnDestroy {
             this.errorMessage = 'У вас недостаточно прав для просмотра заказов';
             this.router.navigate(['/dashboard']);
           }
+          this.orders = [];
+          this.cdr.detectChanges();
         }
       });
   }
